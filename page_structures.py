@@ -56,14 +56,59 @@ class Character:
         return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
 
 class Line:
-    def __init__(self, characters: list[Character]) -> None:
-        pass
+    def __init__(self, characters: list[Character], left, bottom, right, top) -> None:
+        self.characters = characters
+        self.left_side = left
+        self.bottom_side = bottom
+        self.right_side = right
+        self.top_side = top
 
 class LineGenerator:
-    def __init__(self, character_generator) -> None:
+    def __init__(self, character_generator, relative_mode: bool) -> None:
+        """
+        character_generator: pass a iterator class to pull the characters from
+        relative_mode: try testing the next character with the one before it if true
+                        or the first character if false
+        """
         self.char_gen = character_generator
         self.char_index = 0
+        self.relative_mode = relative_mode
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return -1 # Cannot know the length until all lines are generated
 
     def __next__(self):
-        pass
+        character_list = []
+        first_char = self.char_gen.__next__()
+        heightest_vert_val = first_char.__top_side # The relative tallest character of the line (i.e the smallest __top_side value)
+        lowest_vert_val = first_char.__bottom_side # The relative lowest character of the line (i.e the biggest __bottom_side value)
+        
+
+        character_list.append(first_char)
+
+        for char in self.char_gen:
+            test_against_character = \
+                character_list[-1] if self.relative_mode else first_char
+
+            if test_against_character.vertical_intersection(char):
+                if char.__top_side < heightest_vert_val:
+                    heightest_vert_val = char.__top_side
+                if char.__bottom_side > lowest_vert_val:
+                    lowest_vert_val = char.__bottom_side
+                character_list.append(char)
+            else:
+                break
+                
+        return Line(character_list, \
+                    left=first_char.__left_side, \
+                    right=character_list[-1].__right_side, \
+                    top=heightest_vert_val, \
+                    bottom=lowest_vert_val
+                    )
+
+
+
 
