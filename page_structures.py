@@ -1,8 +1,3 @@
-
-
-from logging import raiseExceptions
-
-
 class CharacterConverter:
 
     def __init__(self, input: str) -> None:
@@ -33,8 +28,6 @@ class CharacterConverter:
 
         return Character(character, int(left), int(bottom), int(right), int(top), int(page))
 
-        
-
 
 class Character:
     def __init__(self, character: str, left: int, bottom: int, right: int, top: int, page_num: int, *args) -> None:
@@ -49,8 +42,12 @@ class Character:
         self.data = args
 
     def vertical_intersection(self, other: "Character") -> bool:
-        return self.top_side < other.top_side < self.bottom_side or \
-                other.top_side < self.top_side < other.bottom_side
+        return self.top_side <= other.top_side <= self.bottom_side or \
+                other.top_side <= self.top_side <= other.bottom_side or \
+                (self.top_side <= other.top_side and \
+                 self.bottom_side >= other.bottom_side) or \
+                (other.top_side <= self.top_side and \
+                 other.bottom_side >= self.bottom_side)
 
     def __str__(self) -> str:
         return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
@@ -64,7 +61,7 @@ class Line:
         self.top_side = top
 
 class LineGenerator:
-    def __init__(self, character_generator, relative_mode: bool) -> None:
+    def __init__(self, character_generator: CharacterConverter, relative_mode: bool) -> None:
         """
         character_generator: pass a iterator class to pull the characters from
         relative_mode: try testing the next character with the one before it if true
@@ -83,8 +80,8 @@ class LineGenerator:
     def __next__(self):
         character_list = []
         first_char = self.char_gen.__next__()
-        heightest_vert_val = first_char.__top_side # The relative tallest character of the line (i.e the smallest __top_side value)
-        lowest_vert_val = first_char.__bottom_side # The relative lowest character of the line (i.e the biggest __bottom_side value)
+        heightest_vert_val = first_char.top_side # The relative tallest character of the line (i.e the smallest __top_side value)
+        lowest_vert_val = first_char.bottom_side # The relative lowest character of the line (i.e the biggest __bottom_side value)
         
 
         character_list.append(first_char)
@@ -94,17 +91,17 @@ class LineGenerator:
                 character_list[-1] if self.relative_mode else first_char
 
             if test_against_character.vertical_intersection(char):
-                if char.__top_side < heightest_vert_val:
-                    heightest_vert_val = char.__top_side
-                if char.__bottom_side > lowest_vert_val:
-                    lowest_vert_val = char.__bottom_side
+                if char.top_side < heightest_vert_val:
+                    heightest_vert_val = char.top_side
+                if char.bottom_side > lowest_vert_val:
+                    lowest_vert_val = char.bottom_side
                 character_list.append(char)
             else:
                 break
                 
         return Line(character_list, \
-                    left=first_char.__left_side, \
-                    right=character_list[-1].__right_side, \
+                    left=first_char.left_side, \
+                    right=character_list[-1].right_side, \
                     top=heightest_vert_val, \
                     bottom=lowest_vert_val
                     )

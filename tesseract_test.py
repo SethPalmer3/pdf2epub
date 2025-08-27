@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 import pytesseract
 import os
 import argparse
-from page_structures import Character, CharacterConverter
+from page_structures import Character, CharacterConverter, Line, LineGenerator
 from pdf2image import convert_from_path, pdfinfo_from_path
 
 
@@ -24,12 +24,16 @@ def tess_func(path: str, page: int):
     
     char_iter = CharacterConverter(bounding_box)
     print(len(char_iter))
-    for chr in tqdm(char_iter, total=len(char_iter)):
-        print(chr)
-        pillow_top = image_chunk.height - chr.top_side
-        pillow_bottom = image_chunk.height - chr.bottom_side
-        box = (chr.left_side, pillow_top, chr.right_side, pillow_bottom)
-        draw.rectangle(box, outline='red', width=2)
+    line_iter = LineGenerator(char_iter, False)
+    for line in tqdm(line_iter, total=len(char_iter)):
+        # print(chr)
+        pillow_top = image_chunk.height - line.top_side
+        pillow_bottom = image_chunk.height - line.bottom_side
+        box = (line.left_side, pillow_top, line.right_side, pillow_bottom)
+        try:
+            draw.rectangle(box, outline='red', width=2)
+        except ValueError as e:
+            print(f"box: {box}\n{e}")
 
     image_chunk.show()
 
