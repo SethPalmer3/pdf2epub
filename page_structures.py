@@ -47,7 +47,9 @@ class Character:
                 (self.top_side <= other.top_side and \
                  self.bottom_side >= other.bottom_side) or \
                 (other.top_side <= self.top_side and \
-                 other.bottom_side >= self.bottom_side)
+                 other.bottom_side >= self.bottom_side) or \
+                self.top_side == other.top_side or \
+                self.bottom_side == other.bottom_side
 
     def __str__(self) -> str:
         return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
@@ -59,6 +61,8 @@ class Line:
         self.bottom_side = bottom
         self.right_side = right
         self.top_side = top
+    def __str__(self) -> str:
+        return f"[{self.left_side} {self.bottom_side} {self.right_side} {self.top_side}] " + ' '.join([c.character for c in self.characters])
 
 class LineGenerator:
     def __init__(self, character_generator: CharacterConverter, relative_mode: bool) -> None:

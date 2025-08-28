@@ -9,9 +9,11 @@ from pdf2image import convert_from_path, pdfinfo_from_path
 
 
 def tess_func(path: str, page: int):
-    if not os.path.exists(path):
+    if not os.path.exists(os.path.expanduser(path)):
         print(f"File not found at '{path}'")
         sys.exit(1)
+
+    path = os.path.expanduser(path)
     image_chunks: list[Image.Image] = convert_from_path(
         path,
         first_page=page,
@@ -35,24 +37,28 @@ def tess_func(path: str, page: int):
         except ValueError as e:
             print(f"box: {box}\n{e}")
 
+        print(line)
     image_chunk.show()
 
     # print(text)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="A test of the tesseract library",
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument("pdf_file", help="The path to the input PDF file.")
-    parser.add_argument(
-        "page_num",
-        help="The page number to parse (default=1)",
-        default=1
-    )
-    args = parser.parse_args()
-    tess_func(args.pdf_file, int(args.page_num))
+def main(accept_commandline_args, path="", page=1):
+    if accept_commandline_args:
+        parser = argparse.ArgumentParser(
+            description="A test of the tesseract library",
+            formatter_class=argparse.RawTextHelpFormatter
+        )
+        parser.add_argument("pdf_file", help="The path to the input PDF file.")
+        parser.add_argument(
+            "page_num",
+            help="The page number to parse (default=1)",
+            default=1
+        )
+        args = parser.parse_args()
+        tess_func(args.pdf_file, int(args.page_num))
+    else:
+        tess_func(path, page)
 
 if __name__ == "__main__":
-    main()
+    main(False, "~/Downloads/Silicon_Wafer_breakage_Analysis.pdf", 1)
