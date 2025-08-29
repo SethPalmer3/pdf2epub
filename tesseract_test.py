@@ -61,4 +61,4 @@ def main(accept_commandline_args, path="", page=1):
         tess_func(path, page)
 
 if __name__ == "__main__":
-    main(False, "~/Downloads/Silicon_Wafer_breakage_Analysis.pdf", 1)
+    main(False, "~/Downloads/Silicon_Wafer_breakage_Analysis.pdf", 2)

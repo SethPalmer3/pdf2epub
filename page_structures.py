@@ -42,16 +42,19 @@ class Character:
         self.data = args
 
     def vertical_intersection(self, other: "Character") -> bool:
-        return self.top_side <= other.top_side <= self.bottom_side or \
-                other.top_side <= self.top_side <= other.bottom_side or \
-                (self.top_side <= other.top_side and \
-                 self.bottom_side >= other.bottom_side) or \
-                (other.top_side <= self.top_side and \
-                 other.bottom_side >= self.bottom_side) or \
+        return self.top_side >= other.top_side >= self.bottom_side or \
+                other.top_side >= self.top_side >= other.bottom_side or \
+                (self.top_side >= other.top_side and \
+                 self.bottom_side <= other.bottom_side) or \
+                (other.top_side >= self.top_side and \
+                 other.bottom_side <= self.bottom_side) or \
                 self.top_side == other.top_side or \
                 self.bottom_side == other.bottom_side
 
     def __str__(self) -> str:
+        return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
+
+    def __repr__(self) -> str:
         return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
 
 class Line:
@@ -95,9 +98,9 @@ class LineGenerator:
                 character_list[-1] if self.relative_mode else first_char
 
             if test_against_character.vertical_intersection(char):
-                if char.top_side < heightest_vert_val:
+                if char.top_side > heightest_vert_val:
                     heightest_vert_val = char.top_side
-                if char.bottom_side > lowest_vert_val:
+                if char.bottom_side < lowest_vert_val:
                     lowest_vert_val = char.bottom_side
                 character_list.append(char)
             else:
