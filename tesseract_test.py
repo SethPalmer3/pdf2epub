@@ -30,17 +30,29 @@ def tess_func(path: str, page: int, min_space_thresh, max_space_thresh):
         # print(line)
         pillow_top = image_chunk.height - line.top_side
         pillow_bottom = image_chunk.height - line.bottom_side
+        if line.height < 5:
+            continue 
         box = (line.left_side, pillow_top, line.right_side, pillow_bottom)
+        print(line)
         try:
-            draw.rectangle(box, outline='red', width=2)
+            if line.width < line.height or .6 <= (line.height / line.width) or line.height < 5: 
+                outline_color = "blue"
+            else:
+                outline_color = "red"
+            draw.rectangle(box, outline=outline_color, width=2)
         except ValueError as e:
             print(f"box: {box}\n{e}")
 
-        # print(line)
+        # print(f"H: {line.height}, W: {line.width}")
+        # if line.width < line.height or .6 <= (line.height / line.width) or line.height < 5: 
+        #     print('-'*10)
+        #     print(line)
+        #     for c in line.characters:
+        #         print(c)
+        #     print('-'*10)
     image_chunk.show()
 
     # print(text)
-
 
 def main(accept_commandline_args, path="", page=1, min_space_threshold=0.01, max_space_threshold=0.9):
     if accept_commandline_args:

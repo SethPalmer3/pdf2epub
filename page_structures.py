@@ -50,8 +50,8 @@ class CharacterConverter:
             return False # Since this is the first character it shouldn't have a space
 
         ret = self.min_space_threshold <= (this_char_height / self.last_converted_char.height) <= self.max_space_threshold
-        if True:
-            print((this_char_height / self.last_converted_char.height))
+        # if True:
+        #     print((this_char_height / self.last_converted_char.height))
         return ret
         
     
@@ -96,8 +96,10 @@ class Line:
         self.bottom_side = bottom
         self.right_side = right
         self.top_side = top
+        self.width = abs(self.left_side - self.right_side)
+        self.height = abs(self.top_side - self.bottom_side)
     def __str__(self) -> str:
-        return f"[{self.left_side} {self.bottom_side} {self.right_side} {self.top_side}] " + ' '.join([c.character for c in self.characters])
+        return f"[{self.left_side} {self.bottom_side} {self.right_side} {self.top_side}] " + ''.join([c.character for c in self.characters])
 
 class LineGenerator:
     def __init__(self, character_generator: CharacterConverter, relative_mode: bool) -> None:
