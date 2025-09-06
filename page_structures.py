@@ -45,11 +45,11 @@ class CharacterConverter:
     def __len__(self):
         return -1 # Can't know length as spaces are not evaluated
 
-    def determine_is_space(self, this_char_height: int) -> bool:
+    def determine_is_space(self, dist_between_chars: int, current_char_width: int) -> bool:
         if self.last_converted_char == None:
             return False # Since this is the first character it shouldn't have a space
 
-        ret = self.min_space_threshold <= (this_char_height / self.last_converted_char.height) <= self.max_space_threshold
+        ret = self.min_space_threshold <= (dist_between_chars / self.last_converted_char.width) <= self.max_space_threshold and self.min_space_threshold <= (dist_between_chars / current_char_width) <= self.max_space_threshold
         # if True:
         #     print((this_char_height / self.last_converted_char.height))
         return ret
@@ -68,7 +68,7 @@ class CharacterConverter:
         character, left, bottom, right, top, page = spt
         if self.last_converted_char != None and \
             self.last_converted_char.character != ' ' and \
-            self.determine_is_space(abs(int(top) - int(bottom))):
+            self.determine_is_space(abs( int(left) - self.last_converted_char.right_side), abs( int(right) - int(left) ) ):
             # print(int(left) - self.last_converted_char.right_side)
             c = Character(' ',\
                           self.last_converted_char.right_side,\

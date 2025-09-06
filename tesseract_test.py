@@ -20,13 +20,13 @@ def tess_func(path: str, page: int, min_space_thresh, max_space_thresh):
         last_page=page
     )
     image_chunk = image_chunks[0]
-    bounding_box: str = pytesseract.image_to_boxes(image_chunk)
+    bounding_box: str = pytesseract.image_to_boxes(image_chunk, config='--oem 1')
     draw = ImageDraw.Draw(image_chunk)
     # text = pytesseract.image_to_string(image_chunk, lang="eng", output_type="dict")
     
     char_iter = CharacterConverter(bounding_box, min_space_thresh, max_space_thresh)
     line_iter = LineGenerator(char_iter, False)
-    for line in line_iter:
+    for line in char_iter:
         # print(line)
         pillow_top = image_chunk.height - line.top_side
         pillow_bottom = image_chunk.height - line.bottom_side
@@ -54,7 +54,7 @@ def tess_func(path: str, page: int, min_space_thresh, max_space_thresh):
 
     # print(text)
 
-def main(accept_commandline_args, path="", page=1, min_space_threshold=0.01, max_space_threshold=0.9):
+def main(accept_commandline_args, path="", page=1, min_space_threshold=0.6, max_space_threshold=1.3):
     if accept_commandline_args:
         parser = argparse.ArgumentParser(
             description="A test of the tesseract library",
