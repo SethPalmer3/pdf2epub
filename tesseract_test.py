@@ -12,12 +12,13 @@ def tess_func(path: str, page: int, min_space_thresh, max_space_thresh):
         print(f"File not found at '{path}'")
         sys.exit(1)
 
+    # Get the image of a single page
     path = os.path.expanduser(path)
     image_chunks: list[Image.Image] = convert_from_path(
         path, first_page=page, last_page=page
     )
-    image_chunk = image_chunks[0]
-    bounding_box: str = pytesseract.image_to_boxes(image_chunk, config='--oem 1 -c preserve_interword_spaces=1')
+    image_chunk = image_chunks[0] # Because only going to take one mage
+    bounding_box: str = pytesseract.image_to_boxes(image_chunk, config='--oem 1 -c preserve_interword_spaces=1 --tessdata-dir ./tessdata')
     draw = ImageDraw.Draw(image_chunk)
     # text = pytesseract.image_to_string(image_chunk, lang="eng", output_type="dict")
 
