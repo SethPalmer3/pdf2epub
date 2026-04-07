@@ -67,7 +67,6 @@ class CharacterConverter:
     ) -> bool:
         if self.last_converted_char is None:
             return False  # Since this is the first character it shouldn't have a space
-
         ret = (
             self.min_space_threshold
             <= (dist_between_chars / self.last_converted_char.width)
