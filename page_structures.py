@@ -84,6 +84,8 @@ class CharacterConverter:
         if self.current_line >= self.len:
             raise StopIteration
 
+        # Input string format from tesseract:
+        # <character> <num pix from left page> <num pix from bottom> <num pix from right> <num pix from top> <page>
         spt = self.lines[self.current_line].split(" ")
         while len(spt) < 6:
             self.current_line += 1
