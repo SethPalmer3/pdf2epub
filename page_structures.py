@@ -36,10 +36,10 @@ class Character:
         )
 
     def __str__(self) -> str:
-        return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
+        return f"c:{self.character} l:{self.left_side} b:{self.bottom_side} r:{self.right_side} t:{self.top_side} p:{self.page_num}"
 
     def __repr__(self) -> str:
-        return f"{self.character} {self.left_side} {self.bottom_side} {self.right_side} {self.top_side}"
+        return self.__str__()
 
 
 class CharacterConverter:
@@ -50,7 +50,7 @@ class CharacterConverter:
         pytesseract and gives a generator of the Character class
         The space_threshold determines how far apart charactes need to be to insert a space"""
         self.lines = input.split("\n")
-        self.current_line = 0
+        self.current_input_line = 0
         self.len = len(self.lines)
         self.min_space_threshold = min_space_threshold
         self.max_space_threshold = max_space_threshold
@@ -60,44 +60,41 @@ class CharacterConverter:
         return self
 
     def __len__(self):
-        return -1  # Can't know length as spaces are not evaluated
+        return self.len
+
+    def isempty(self):
+        return self.len == self.current_input_line
 
     def determine_is_space(
         self, dist_between_chars: int, current_char_width: int
     ) -> bool:
         if self.last_converted_char is None:
             return False  # Since this is the first character it shouldn't have a space
-        ret = (
-            self.min_space_threshold
-            <= (dist_between_chars / self.last_converted_char.width)
-            <= self.max_space_threshold
-            and self.min_space_threshold
-            <= (dist_between_chars / current_char_width)
-            <= self.max_space_threshold
+
+        return (
+            self.min_space_threshold <= (dist_between_chars) <= self.max_space_threshold
         )
-        # if True:
-        #     print((this_char_height / self.last_converted_char.height))
-        return ret
 
     def __next__(self):
-        if self.current_line >= self.len:
+        if self.current_input_line >= self.len:  # No more lines to process
             raise StopIteration
 
         # Input string format from tesseract:
         # <character> <num pix from left page> <num pix from bottom> <num pix from right> <num pix from top> <page>
-        spt = self.lines[self.current_line].split(" ")
+        spt = self.lines[self.current_input_line].split(" ")
         while len(spt) < 6:
-            self.current_line += 1
-            if self.current_line >= self.len:
+            self.current_input_line += 1
+            if self.current_input_line >= self.len:
                 raise StopIteration
-            spt = self.lines[self.current_line].split(" ")
+            spt = self.lines[self.current_input_line].split(" ")
+        # print(spt)
         character, left, bottom, right, top, page = spt
-        if (
+        if (  # Determine if the next character should be a space
             self.last_converted_char is not None
             and self.last_converted_char.character != " "
             and self.determine_is_space(
-                abs(int(left) - self.last_converted_char.right_side),
-                abs(int(right) - int(left)),
+                (int(left) - self.last_converted_char.right_side),
+                (int(right) - int(left)),
             )
         ):
             # print(int(left) - self.last_converted_char.right_side)
@@ -109,11 +106,11 @@ class CharacterConverter:
                 int(top),
                 int(page),
             )
-        else:
-            self.current_line += 1
+        else:  # Fall back if space check fails
             c = Character(
                 character, int(left), int(bottom), int(right), int(top), int(page)
             )
+            self.current_input_line += 1
         self.last_converted_char = c
         return c
 
@@ -125,12 +122,14 @@ class Line:
         self.bottom_side = bottom
         self.right_side = right
         self.top_side = top
+        self.page_nums = []
         self.width = abs(self.left_side - self.right_side)
         self.height = abs(self.top_side - self.bottom_side)
 
     def __str__(self) -> str:
+        page_num_set = set([c.page_num for c in self.characters])
         return (
-            f"[{self.left_side} {self.bottom_side} {self.right_side} {self.top_side}] "
+            f"[{self.left_side} {self.bottom_side} {self.right_side} {self.top_side} {sorted(list(page_num_set))}] "
             + "".join([c.character for c in self.characters])
         )
 
@@ -147,6 +146,7 @@ class LineGenerator:
         self.char_gen = character_generator
         self.char_index = 0
         self.relative_mode = relative_mode
+        self.next_line_first_char = None
 
     def __iter__(self):
         return self
@@ -156,13 +156,19 @@ class LineGenerator:
 
     def __next__(self):
         character_list: list[Character] = []
-        first_char = self.char_gen.__next__()
+        first_char = (
+            self.char_gen.__next__()
+            if self.next_line_first_char is None
+            else self.next_line_first_char
+        )
         heightest_vert_val = first_char.top_side  # The relative tallest character of the line (i.e the smallest top_side value)
         lowest_vert_val = first_char.bottom_side  # The relative lowest character of the line (i.e the biggest bottom_side value)
 
         character_list.append(first_char)
 
+        iterations = 0
         for char in self.char_gen:
+            iterations += 1
             test_against_character = (
                 character_list[-1] if self.relative_mode else first_char
             )
@@ -175,7 +181,10 @@ class LineGenerator:
                 character_list.append(char)
                 # print(f"{character_list[-1].right_side - character_list[-2].left_side}")
             else:
+                self.next_line_first_char = char
                 break
+        if iterations == 0:
+            raise StopIteration
 
         return Line(
             character_list,
