@@ -21,7 +21,7 @@ def tess_func(path: str, page: int, min_space_threshold, max_space_threshold):
     # draw: ImageDraw.ImageDraw = ImageDraw.Draw(image_chunk)
     # text = pytesseract.image_to_string(image_chunk, lang="eng", output_type="dict")
 
-    for image_chunk in image_chunks:
+    for page, image_chunk in enumerate(image_chunks):
         bounding_boxes: str = pytesseract.image_to_boxes(
             image_chunk, config="--oem 1 --psm 1 -l eng --tessdata-dir ./tessdata/"
         )

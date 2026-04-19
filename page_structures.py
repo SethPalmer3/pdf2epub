@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Character:
     def __init__(
         self,
@@ -42,6 +45,14 @@ class Character:
         return self.__str__()
 
 
+class WhiteSpace(Enum):
+    """Used for the determine whitespace method"""
+
+    NotWhiteSpace = None
+    NewLine = "\n"
+    Space = " "
+
+
 class CharacterConverter:
     def __init__(
         self, input: str, min_space_threshold: float, max_space_threshold: float
@@ -65,14 +76,23 @@ class CharacterConverter:
     def isempty(self):
         return self.len == self.current_input_line
 
-    def determine_is_space(
-        self, dist_between_chars: int, current_char_width: int
-    ) -> bool:
+    def determine_whitespace(self, dist_between_chars: int) -> WhiteSpace:
         if self.last_converted_char is None:
-            return False  # Since this is the first character it shouldn't have a space
+            return (
+                WhiteSpace.NotWhiteSpace
+            )  # Since this is the first character it shouldn't have a space
+
+        if (
+            dist_between_chars < 0 and self.last_converted_char == "-"
+        ):  # the current character is on the next line
+            return WhiteSpace.NewLine
 
         return (
-            self.min_space_threshold <= (dist_between_chars) <= self.max_space_threshold
+            WhiteSpace.Space
+            if self.min_space_threshold
+            <= (dist_between_chars)
+            <= self.max_space_threshold
+            else WhiteSpace.NotWhiteSpace
         )
 
     def __next__(self):
@@ -92,14 +112,16 @@ class CharacterConverter:
         if (  # Determine if the next character should be a space
             self.last_converted_char is not None
             and self.last_converted_char.character != " "
-            and self.determine_is_space(
-                (int(left) - self.last_converted_char.right_side),
-                (int(right) - int(left)),
+            and (
+                white_space := self.determine_whitespace(
+                    (int(left) - self.last_converted_char.right_side),
+                )
             )
+            is not WhiteSpace.NotWhiteSpace
         ):
             # print(int(left) - self.last_converted_char.right_side)
             c = Character(
-                " ",
+                white_space.value,
                 self.last_converted_char.right_side,
                 int(bottom),
                 int(left),
@@ -113,6 +135,25 @@ class CharacterConverter:
             self.current_input_line += 1
         self.last_converted_char = c
         return c
+
+
+class TextConstructor:
+    """
+    Converts a string of characters into a cohesive complete text output
+    """
+
+    def __init__(self):
+        self.output_text = ""
+
+    def construct_from_converter(self, char_converter: CharacterConverter) -> None:
+        for converted_character in char_converter:
+            self.output_text = self.output_text + converted_character.character
+            if (
+                len(self.output_text) >= 2
+                and self.output_text[-1] == "\n"
+                and self.output_text[-2] == "-"
+            ):
+                self.output_text = self.output_text[:-2]
 
 
 class Line:
